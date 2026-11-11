@@ -1,10 +1,14 @@
 const express = require('express');
 const { Pool } = require('pg');
 const crypto = require('crypto');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
 app.use(express.json());
+
+// Phục vụ tĩnh thư mục public (đã chứa file index.html)
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Kết nối PostgreSQL (Bắt buộc rejectUnauthorized: false cho Neon DB)
 const pool = new Pool({
@@ -15,24 +19,6 @@ const pool = new Pool({
 function hashPassword(password) {
   return crypto.createHash('sha256').update(password).digest('hex');
 }
-
-// Route trang chủ API & thông tin hệ thống
-app.get('/', (req, res) => {
-  res.send(`
-    <html>
-      <head><title>Cloud Task API</title></head>
-      <body style="font-family: sans-serif; padding: 40px; background: #0f172a; color: #f8fafc;">
-        <h2>🚀 Cloud Task Manager API Backend is Live!</h2>
-        <p>Hệ thống Backend đã kết nối với PostgreSQL Neon.tech thành công.</p>
-        <ul>
-          <li><a style="color: #38bdf8;" href="/health">GET /health</a> - Kiểm tra kết nối DB</li>
-          <li><a style="color: #38bdf8;" href="/init">GET /init</a> - Khởi tạo bảng dữ liệu</li>
-          <li><a style="color: #38bdf8;" href="/tasks">GET /tasks</a> - Lấy danh sách công việc</li>
-        </ul>
-      </body>
-    </html>
-  `);
-});
 
 // 1. API Khởi tạo bảng DB
 app.get('/init', async (req, res) => {
