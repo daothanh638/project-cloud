@@ -22,29 +22,37 @@
     <!-- 1. SIDEBAR BÊN TRÁI -->
     <aside class="w-60 bg-sidebar border-r border-theme flex flex-col justify-between p-4 shrink-0">
         <div class="space-y-6">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2.5">
-                    <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
-                        <i class="fa-solid fa-layer-group"></i>
-                    </div>
-                    <span class="font-bold text-white text-base">Quản lý Task <span class="text-[10px] text-slate-500 font-normal">v2.1</span></span>
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center font-bold">
+                    <i class="fa-solid fa-layer-group"></i>
                 </div>
+                <span class="font-bold text-white text-base">Quản lý Task <span class="text-[10px] text-slate-500 font-normal">v2.1</span></span>
             </div>
 
+            <!-- Menu Điều Hướng -->
             <nav class="space-y-1">
-                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-teal-600/20 text-teal-400 font-semibold text-xs border-l-4 border-teal-500">
+                <button onclick="switchView('kanban')" id="nav-kanban" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-teal-600/20 text-teal-400 font-semibold text-xs border-l-4 border-teal-500 transition-all">
                     <i class="fa-solid fa-table-columns w-4"></i> Bảng Kanban
-                </a>
+                </button>
+                <button onclick="switchView('list')" id="nav-list" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800/50 hover:text-white font-medium text-xs transition-all">
+                    <i class="fa-solid fa-list-ul w-4"></i> Danh sách dạng bảng
+                </button>
+                <button onclick="switchView('today')" id="nav-today" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800/50 hover:text-white font-medium text-xs transition-all">
+                    <i class="fa-regular fa-calendar-days w-4"></i> Lịch trình hôm nay
+                </button>
+                <button onclick="switchView('history')" id="nav-history" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800/50 hover:text-white font-medium text-xs transition-all">
+                    <i class="fa-solid fa-clock-rotate-left w-4"></i> Lịch sử thao tác
+                </button>
             </nav>
         </div>
 
         <div class="pt-4 border-t border-theme space-y-3">
             <div id="user-info-box" class="px-2">
-                <p class="text-[11px] text-slate-500">Tài khoản hiện tại</p>
+                <p class="text-[11px] text-slate-500">Tài khoản</p>
                 <p id="username-display" class="font-bold text-teal-400 text-xs truncate">Chưa đăng nhập</p>
             </div>
-            <button id="auth-btn" onclick="handleAuthAction()" class="flex items-center gap-2 text-xs text-slate-300 hover:text-white transition-colors w-full px-2 py-1.5 bg-slate-800 rounded-lg">
-                <i class="fa-solid fa-right-from-bracket"></i> <span id="auth-btn-text">Đăng nhập / Đăng ký</span>
+            <button id="auth-btn" onclick="handleAuthAction()" class="flex items-center gap-2 text-xs text-slate-300 hover:text-white w-full px-2 py-1.5 bg-slate-800 rounded-lg">
+                <i class="fa-solid fa-right-from-bracket"></i> <span id="auth-btn-text">Đăng nhập</span>
             </button>
         </div>
     </aside>
@@ -56,12 +64,12 @@
         <header class="h-16 border-b border-theme px-6 flex items-center justify-between shrink-0">
             <div class="relative w-80">
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
-                <input type="text" id="search-input" onkeyup="renderBoard()" placeholder="Tìm kiếm công việc..." 
+                <input type="text" id="search-input" onkeyup="renderCurrentView()" placeholder="Tìm kiếm công việc..." 
                     class="w-full bg-[#111c2a] border border-theme rounded-lg pl-9 pr-4 py-1.5 text-xs text-white focus:outline-none focus:border-teal-500">
             </div>
 
             <div class="flex items-center gap-3">
-                <button onclick="initDB()" title="Khởi tạo lại bảng DB" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs flex items-center gap-1.5">
+                <button onclick="initDB()" title="Khởi tạo/Cập nhật DB" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs flex items-center gap-1.5">
                     <i class="fa-solid fa-database text-teal-400"></i> Init DB
                 </button>
                 <button onclick="openModal()" class="px-4 py-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs rounded-lg flex items-center gap-1.5 transition-all shadow-lg shadow-teal-500/20">
@@ -70,21 +78,9 @@
             </div>
         </header>
 
-        <!-- Sub Header Filter Bar -->
-        <div class="px-6 py-3 border-b border-theme flex items-center gap-3 text-xs shrink-0 flex-wrap">
-            <span class="text-slate-400 font-medium flex items-center gap-1.5"><i class="fa-solid fa-filter text-slate-500"></i> Lọc mức độ:</span>
-            <select id="filter-priority" onchange="renderBoard()" class="bg-[#111c2a] border border-theme rounded-lg px-3 py-1.5 text-slate-300 focus:outline-none">
-                <option value="ALL">Tất cả mức độ</option>
-                <option value="Khẩn cấp">Khẩn cấp</option>
-                <option value="Trung bình">Trung bình</option>
-                <option value="Thấp">Thấp</option>
-            </select>
-        </div>
-
-        <!-- 3. KANBAN BOARD CONTAINER -->
-        <div class="flex-1 overflow-x-auto p-6 custom-scroll">
+        <!-- SUB VIEW 1: KANBAN BOARD -->
+        <div id="view-kanban" class="flex-1 overflow-x-auto p-6 custom-scroll">
             <div class="flex gap-5 h-full min-w-max">
-
                 <!-- Cột 1: Cần làm -->
                 <div class="w-72 flex flex-col h-full bg-[#0e1724]/60 rounded-xl border border-theme/60 p-3">
                     <div class="flex items-center justify-between mb-3 px-1">
@@ -132,25 +128,58 @@
                     </div>
                     <div id="col-completed" class="flex-1 space-y-3 overflow-y-auto custom-scroll pr-1"></div>
                 </div>
-
             </div>
+        </div>
+
+        <!-- SUB VIEW 2: DANH SÁCH DẠNG BẢNG -->
+        <div id="view-list" class="flex-1 p-6 hidden overflow-y-auto custom-scroll">
+            <h2 class="text-base font-bold text-white mb-4"><i class="fa-solid fa-list-ul text-teal-400 mr-2"></i>Danh Sách Công Việc</h2>
+            <div class="bg-[#111c2a] border border-theme rounded-xl overflow-hidden">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-[#0e1724] text-slate-400 border-b border-theme">
+                        <tr>
+                            <th class="p-3">Mã Task</th>
+                            <th class="p-3">Tiêu đề</th>
+                            <th class="p-3">Trạng thái</th>
+                            <th class="p-3">Hạn chót</th>
+                            <th class="p-3 text-right">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody id="list-table-body" class="divide-y divide-theme/40 text-slate-300"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- SUB VIEW 3: LỊCH TRÌNH HÔM NAY -->
+        <div id="view-today" class="flex-1 p-6 hidden overflow-y-auto custom-scroll">
+            <h2 class="text-base font-bold text-white mb-4"><i class="fa-regular fa-calendar-days text-teal-400 mr-2"></i>Lịch Trình Hôm Nay</h2>
+            <div id="today-tasks-container" class="space-y-3 max-w-2xl"></div>
+        </div>
+
+        <!-- SUB VIEW 4: LỊCH SỬ THAO TÁC -->
+        <div id="view-history" class="flex-1 p-6 hidden overflow-y-auto custom-scroll">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-base font-bold text-white"><i class="fa-solid fa-clock-rotate-left text-teal-400 mr-2"></i>Lịch Sử Thao Tác</h2>
+                <button onclick="clearHistory()" class="text-xs text-rose-400 hover:underline">Xóa lịch sử</button>
+            </div>
+            <div id="history-container" class="space-y-2 max-w-2xl"></div>
         </div>
     </main>
 
-    <!-- MODAL ĐĂNG NHẬP / ĐĂNG KÝ -->
+    <!-- MODAL AUTH -->
     <div id="auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-[#111c2a] border border-theme w-full max-w-sm rounded-2xl p-6 shadow-2xl">
             <h3 id="auth-title" class="text-lg font-bold text-white mb-4 text-center">Đăng Nhập Hệ Thống</h3>
             <form onsubmit="submitAuth(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs text-slate-400 mb-1">Tên tài khoản</label>
-                    <input type="text" id="auth-username" required placeholder="Nhập username..." class="w-full bg-[#0b131e] border border-theme rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-teal-500">
+                    <input type="text" id="auth-username" required placeholder="Username..." class="w-full bg-[#0b131e] border border-theme rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-teal-500">
                 </div>
                 <div>
                     <label class="block text-xs text-slate-400 mb-1">Mật khẩu</label>
-                    <input type="password" id="auth-password" required placeholder="Nhập mật khẩu..." class="w-full bg-[#0b131e] border border-theme rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-teal-500">
+                    <input type="password" id="auth-password" required placeholder="Mật khẩu..." class="w-full bg-[#0b131e] border border-theme rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-teal-500">
                 </div>
-                <button type="submit" id="auth-btn-submit" class="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-2.5 rounded-lg text-xs transition-all">Đăng Nhập</button>
+                <button type="submit" id="auth-btn-submit" class="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-2.5 rounded-lg text-xs">Đăng Nhập</button>
             </form>
             <div class="mt-4 text-center">
                 <button onclick="toggleAuthMode()" id="auth-toggle-btn" class="text-xs text-teal-400 hover:underline">Chưa có tài khoản? Đăng ký ngay</button>
@@ -158,7 +187,7 @@
         </div>
     </div>
 
-    <!-- MODAL TẠO TASK MỚI -->
+    <!-- MODAL CREATION TASK -->
     <div id="task-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-[#111c2a] border border-theme w-full max-w-md rounded-2xl p-6 shadow-2xl">
             <div class="flex justify-between items-center mb-4">
@@ -168,16 +197,16 @@
             <form onsubmit="createTask(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs text-slate-400 mb-1">Tên công việc (*)</label>
-                    <input type="text" id="task-title" required placeholder="Ví dụ: Thiết kế Docker Container" class="w-full bg-[#0b131e] border border-theme rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-teal-500">
+                    <input type="text" id="task-title" required placeholder="Ví dụ: Công việc 22: Tối ưu Docker" class="w-full bg-[#0b131e] border border-theme rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-teal-500">
                 </div>
                 <div>
                     <label class="block text-xs text-slate-400 mb-1">Mô tả chi tiết</label>
-                    <textarea id="task-desc" rows="3" placeholder="Ghi chú thêm..." class="w-full bg-[#0b131e] border border-theme rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-teal-500"></textarea>
+                    <textarea id="task-desc" rows="3" placeholder="Ghi chú công việc..." class="w-full bg-[#0b131e] border border-theme rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-teal-500"></textarea>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs text-slate-400 mb-1">Trạng thái</label>
-                        <select id="task-status" class="w-full bg-[#0b131e] border border-theme rounded-lg p-2 text-xs text-white focus:outline-none">
+                        <select id="task-status" class="w-full bg-[#0b131e] border border-theme rounded-lg p-2 text-xs text-white">
                             <option value="Pending">Cần làm</option>
                             <option value="In Progress">Đang làm</option>
                             <option value="Review">Chờ duyệt</option>
@@ -185,17 +214,9 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs text-slate-400 mb-1">Mức độ ưu tiên</label>
-                        <select id="task-priority" class="w-full bg-[#0b131e] border border-theme rounded-lg p-2 text-xs text-white focus:outline-none">
-                            <option value="Trung bình">Trung bình</option>
-                            <option value="Khẩn cấp">Khẩn cấp</option>
-                            <option value="Thấp">Thấp</option>
-                        </select>
+                        <label class="block text-xs text-slate-400 mb-1">Hạn chót (Deadline)</label>
+                        <input type="date" id="task-duedate" class="w-full bg-[#0b131e] border border-theme rounded-lg p-2 text-xs text-white">
                     </div>
-                </div>
-                <div>
-                    <label class="block text-xs text-slate-400 mb-1">Hạn chót (Deadline)</label>
-                    <input type="date" id="task-duedate" class="w-full bg-[#0b131e] border border-theme rounded-lg p-2 text-xs text-white focus:outline-none">
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" onclick="closeModal()" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs rounded-lg">Hủy</button>
@@ -205,12 +226,42 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT THAO TÁC API -->
+    <!-- JAVASCRIPT THAO TÁC API & NAVIGATION -->
     <script>
         const API_URL = window.location.origin;
         let currentUser = JSON.parse(localStorage.getItem('cloud_user')) || null;
         let isRegisterMode = false;
         let allTasks = [];
+        let currentView = 'kanban';
+        let actionHistory = JSON.parse(localStorage.getItem('cloud_history')) || [];
+
+        function addHistoryLog(actionText) {
+            const time = new Date().toLocaleTimeString('vi-VN');
+            actionHistory.unshift({ time, text: actionText });
+            localStorage.setItem('cloud_history', JSON.stringify(actionHistory));
+        }
+
+        function clearHistory() {
+            actionHistory = [];
+            localStorage.removeItem('cloud_history');
+            renderHistoryView();
+        }
+
+        function switchView(viewName) {
+            currentView = viewName;
+            ['kanban', 'list', 'today', 'history'].forEach(v => {
+                const el = document.getElementById('view-' + v);
+                const nav = document.getElementById('nav-' + v);
+                if (v === viewName) {
+                    el.classList.remove('hidden');
+                    nav.className = 'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg bg-teal-600/20 text-teal-400 font-semibold text-xs border-l-4 border-teal-500 transition-all';
+                } else {
+                    el.classList.add('hidden');
+                    nav.className = 'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800/50 hover:text-white font-medium text-xs transition-all';
+                }
+            });
+            renderCurrentView();
+        }
 
         function updateAuthUI() {
             if (currentUser) {
@@ -220,7 +271,7 @@
                 fetchTasks();
             } else {
                 document.getElementById('username-display').innerText = 'Chưa đăng nhập';
-                document.getElementById('auth-btn-text').innerText = 'Đăng nhập / Đăng ký';
+                document.getElementById('auth-btn-text').innerText = 'Đăng nhập';
                 document.getElementById('auth-modal').classList.remove('hidden');
             }
         }
@@ -258,11 +309,12 @@
                 if (!res.ok) throw new Error(data.error || 'Lỗi xác thực');
 
                 if (isRegisterMode) {
-                    alert('Đăng ký thành công! Đang chuyển sang đăng nhập.');
+                    alert('Đăng ký thành công!');
                     toggleAuthMode();
                 } else {
                     currentUser = data.user;
                     localStorage.setItem('cloud_user', JSON.stringify(currentUser));
+                    addHistoryLog('Đăng nhập hệ thống');
                     updateAuthUI();
                 }
             } catch (err) { alert(err.message); }
@@ -273,20 +325,24 @@
             try {
                 const res = await fetch(API_URL + '/tasks?userId=' + currentUser.id);
                 allTasks = await res.json();
-                renderBoard();
+                renderCurrentView();
             } catch(e) {}
         }
 
-        function renderBoard() {
+        function renderCurrentView() {
+            if (currentView === 'kanban') renderBoard();
+            if (currentView === 'list') renderListView();
+            if (currentView === 'today') renderTodayView();
+            if (currentView === 'history') renderHistoryView();
+        }
+
+        function getFilteredTasks() {
             const searchVal = document.getElementById('search-input').value.toLowerCase();
-            const prioVal = document.getElementById('filter-priority').value;
+            return allTasks.filter(t => (t.title && t.title.toLowerCase().includes(searchVal)) || (t.description && t.description.toLowerCase().includes(searchVal)));
+        }
 
-            let filtered = allTasks.filter(t => {
-                const matchSearch = (t.title && t.title.toLowerCase().includes(searchVal)) || (t.description && t.description.toLowerCase().includes(searchVal));
-                const matchPrio = prioVal === 'ALL' || (t.description && t.description.includes(prioVal));
-                return matchSearch && matchPrio;
-            });
-
+        function renderBoard() {
+            const filtered = getFilteredTasks();
             const cols = {
                 'Pending': { el: document.getElementById('col-pending'), count: document.getElementById('count-pending'), list: [] },
                 'In Progress': { el: document.getElementById('col-progress'), count: document.getElementById('count-progress'), list: [] },
@@ -303,6 +359,52 @@
                 cols[k].count.innerText = cols[k].list.length;
                 cols[k].el.innerHTML = cols[k].list.map(t => createCardHTML(t)).join('');
             });
+        }
+
+        function renderListView() {
+            const filtered = getFilteredTasks();
+            const container = document.getElementById('list-table-body');
+            if (filtered.length === 0) {
+                container.innerHTML = '<tr><td colspan="5" class="p-4 text-center text-slate-500">Chưa có công việc nào</td></tr>';
+                return;
+            }
+            container.innerHTML = filtered.map(t => `
+                <tr>
+                    <td class="p-3 font-bold text-slate-500">TASK-${1000 + t.id}</td>
+                    <td class="p-3 font-semibold text-white">${t.title}</td>
+                    <td class="p-3"><span class="px-2 py-0.5 rounded bg-slate-800 text-teal-400 font-medium">${t.status}</span></td>
+                    <td class="p-3 text-slate-400">${t.due_date ? new Date(t.due_date).toLocaleDateString('vi-VN') : 'Không'}</td>
+                    <td class="p-3 text-right">
+                        <button onclick="deleteTask(${t.id})" class="text-rose-400 hover:text-rose-300"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function renderTodayView() {
+            const container = document.getElementById('today-tasks-container');
+            const todayStr = new Date().toISOString().split('T')[0];
+            const todayTasks = allTasks.filter(t => t.due_date && t.due_date.startsWith(todayStr));
+
+            if (todayTasks.length === 0) {
+                container.innerHTML = '<div class="p-4 bg-[#111c2a] border border-theme rounded-xl text-slate-400 text-xs">Không có công việc nào hết hạn trong hôm nay.</div>';
+                return;
+            }
+            container.innerHTML = todayTasks.map(t => createCardHTML(t)).join('');
+        }
+
+        function renderHistoryView() {
+            const container = document.getElementById('history-container');
+            if (actionHistory.length === 0) {
+                container.innerHTML = '<div class="p-4 bg-[#111c2a] border border-theme rounded-xl text-slate-400 text-xs">Chưa có nhật ký lịch sử.</div>';
+                return;
+            }
+            container.innerHTML = actionHistory.map(h => `
+                <div class="p-3 bg-[#111c2a] border border-theme rounded-lg flex items-center justify-between text-xs">
+                    <span class="text-slate-300"><i class="fa-solid fa-angle-right text-teal-400 mr-2"></i>${h.text}</span>
+                    <span class="text-slate-500 text-[10px]">${h.time}</span>
+                </div>
+            `).join('');
         }
 
         function createCardHTML(t) {
@@ -327,7 +429,6 @@
                         </div>
                     </div>
 
-                    <!-- Dropdown đổi trạng thái trực tiếp -->
                     <div class="pt-1">
                         <select onchange="updateTaskStatus(${t.id}, this.value)" class="w-full bg-[#0b131e] border border-theme text-[10px] rounded px-1.5 py-1 text-slate-300 focus:outline-none">
                             <option value="Pending" ${t.status === 'Pending' ? 'selected' : ''}>📍 Chuyển: Cần làm</option>
@@ -349,16 +450,23 @@
             const status = document.getElementById('task-status').value;
             const dueDate = document.getElementById('task-duedate').value;
 
-            await fetch(API_URL + '/tasks', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, description, status, dueDate, userId: currentUser.id })
-            });
+            try {
+                const res = await fetch(API_URL + '/tasks', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ title, description, status, dueDate, userId: currentUser.id })
+                });
 
-            document.getElementById('task-title').value = '';
-            document.getElementById('task-desc').value = '';
-            closeModal();
-            fetchTasks();
+                if (res.ok) {
+                    addHistoryLog('Đã tạo công việc mới: ' + title);
+                    document.getElementById('task-title').value = '';
+                    document.getElementById('task-desc').value = '';
+                    closeModal();
+                    fetchTasks();
+                } else {
+                    alert('Lỗi tạo task từ server');
+                }
+            } catch(err) { alert('Lỗi kết nối: ' + err.message); }
         }
 
         async function updateTaskStatus(id, newStatus) {
@@ -367,12 +475,14 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: newStatus })
             });
+            addHistoryLog(`Đã chuyển Task #${1000 + id} sang ${newStatus}`);
             fetchTasks();
         }
 
         async function deleteTask(id) {
             if(confirm('Bạn có chắc muốn xóa công việc này khỏi Database?')) {
                 await fetch(API_URL + '/tasks/' + id, { method: 'DELETE' });
+                addHistoryLog(`Đã xóa Task #${1000 + id}`);
                 fetchTasks();
             }
         }
@@ -383,13 +493,12 @@
             document.getElementById('task-modal').classList.remove('hidden');
         }
 
-        function closeModal() {
-            document.getElementById('task-modal').classList.add('hidden');
-        }
+        function closeModal() { document.getElementById('task-modal').classList.add('hidden'); }
 
         async function initDB() {
             const res = await fetch(API_URL + '/init');
             alert(await res.text());
+            fetchTasks();
         }
 
         updateAuthUI();
