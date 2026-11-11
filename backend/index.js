@@ -6,6 +6,7 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 
+// Kết nối PostgreSQL (Bắt buộc rejectUnauthorized: false cho Neon DB)
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
@@ -15,340 +16,25 @@ function hashPassword(password) {
   return crypto.createHash('sha256').update(password).digest('hex');
 }
 
-// 1. Giao diện Web HTML Dashboard Hiện Đại
+// Route trang chủ API & thông tin hệ thống
 app.get('/', (req, res) => {
-  res.send(`<!DOCTYPE html>
-<html lang="vi">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cloud Task Pro - Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <style>
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); }
-    </style>
-</head>
-<body class="bg-slate-950 text-slate-100 min-h-screen font-sans">
-    <div class="max-w-6xl mx-auto px-4 py-8">
-        <!-- Header -->
-        <header class="flex justify-between items-center pb-6 border-b border-slate-800/80">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-purple-500 flex items-center justify-center text-white text-xl shadow-lg shadow-indigo-500/20">
-                    <i class="fa-solid fa-list-check"></i>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">Cloud Task Pro</h1>
-                    <p class="text-slate-400 text-xs mt-0.5">Hệ thống quản lý công việc trên Render & Neon DB</p>
-                </div>
-            </div>
-            <div class="flex items-center gap-3">
-                <span id="user-display" class="text-xs text-slate-300 font-medium"></span>
-                <button id="btn-auth" onclick="handleAuthAction()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition-all shadow-lg shadow-indigo-600/20">
-                    Đăng nhập
-                </button>
-            </div>
-        </header>
-
-        <!-- Form Auth -->
-        <div id="auth-box" class="max-w-md mx-auto my-12 glass border border-slate-800 p-8 rounded-2xl shadow-2xl">
-            <h2 id="auth-title" class="text-xl font-bold text-center text-white mb-6">Đăng Nhập Hệ Thống</h2>
-            <form onsubmit="submitAuth(event)" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Tên tài khoản</label>
-                    <input type="text" id="auth-username" required placeholder="Nhập username..." class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">Mật khẩu</label>
-                    <input type="password" id="auth-password" required placeholder="Nhập mật khẩu..." class="w-full bg-slate-900/90 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500">
-                </div>
-                <button type="submit" id="auth-btn-submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold text-xs py-3 rounded-xl transition-all shadow-lg shadow-indigo-500/20">
-                    Đăng Nhập
-                </button>
-            </form>
-            <div class="mt-5 text-center">
-                <button onclick="toggleAuthMode()" id="auth-toggle-btn" class="text-xs text-indigo-400 hover:underline">
-                    Chưa có tài khoản? Đăng ký ngay
-                </button>
-            </div>
-        </div>
-
-        <!-- Dashboard View -->
-        <div id="dashboard-box" class="hidden space-y-6 my-6">
-            <!-- Thống kê -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div class="glass p-4 rounded-2xl border border-slate-800/80 flex items-center justify-between">
-                    <div>
-                        <p class="text-slate-400 text-xs font-medium">Tổng số công việc</p>
-                        <h3 id="stat-total" class="text-2xl font-bold text-white mt-1">0</h3>
-                    </div>
-                    <div class="w-10 h-10 rounded-xl bg-slate-800 text-indigo-400 flex items-center justify-center"><i class="fa-solid fa-boxes-stacked"></i></div>
-                </div>
-                <div class="glass p-4 rounded-2xl border border-slate-800/80 flex items-center justify-between">
-                    <div>
-                        <p class="text-slate-400 text-xs font-medium">Chờ thực hiện</p>
-                        <h3 id="stat-pending" class="text-2xl font-bold text-amber-400 mt-1">0</h3>
-                    </div>
-                    <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center"><i class="fa-solid fa-clock"></i></div>
-                </div>
-                <div class="glass p-4 rounded-2xl border border-slate-800/80 flex items-center justify-between">
-                    <div>
-                        <p class="text-slate-400 text-xs font-medium">Đang tiến hành</p>
-                        <h3 id="stat-progress" class="text-2xl font-bold text-blue-400 mt-1">0</h3>
-                    </div>
-                    <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center"><i class="fa-solid fa-spinner"></i></div>
-                </div>
-                <div class="glass p-4 rounded-2xl border border-slate-800/80 flex items-center justify-between">
-                    <div>
-                        <p class="text-slate-400 text-xs font-medium">Đã hoàn thành</p>
-                        <h3 id="stat-completed" class="text-2xl font-bold text-emerald-400 mt-1">0</h3>
-                    </div>
-                    <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center"><i class="fa-solid fa-circle-check"></i></div>
-                </div>
-            </div>
-
-            <!-- Content Area -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <!-- Form tạo task -->
-                <div class="glass p-5 rounded-2xl border border-slate-800/80 h-fit space-y-4">
-                    <h2 class="text-sm font-semibold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-plus text-indigo-400"></i> Thêm công việc mới
-                    </h2>
-                    <form onsubmit="createTask(event)" class="space-y-3">
-                        <div>
-                            <label class="block text-[11px] font-medium text-slate-400 mb-1">Tiêu đề (*)</label>
-                            <input type="text" id="task-title" required placeholder="Nhập tiêu đề..." class="w-full bg-slate-900 border border-slate-700/70 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
-                        </div>
-                        <div>
-                            <label class="block text-[11px] font-medium text-slate-400 mb-1">Mô tả</label>
-                            <textarea id="task-desc" rows="3" placeholder="Chi tiết công việc..." class="w-full bg-slate-900 border border-slate-700/70 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-indigo-500"></textarea>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-[11px] font-medium text-slate-400 mb-1">Trạng thái</label>
-                                <select id="task-status" class="w-full bg-slate-900 border border-slate-700/70 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
-                                    <option value="Pending">Chờ thực hiện</option>
-                                    <option value="In Progress">Đang làm</option>
-                                    <option value="Completed">Hoàn thành</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[11px] font-medium text-slate-400 mb-1">Hạn chót (Deadline)</label>
-                                <input type="date" id="task-duedate" class="w-full bg-slate-900 border border-slate-700/70 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-indigo-500">
-                            </div>
-                        </div>
-                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs py-2.5 rounded-xl transition-all shadow-lg shadow-indigo-600/20">
-                            Tạo mới công việc
-                        </button>
-                    </form>
-                </div>
-
-                <!-- Danh sách & Bộ lọc -->
-                <div class="lg:col-span-2 space-y-4">
-                    <!-- Nav Tabs Lọc -->
-                    <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-                        <div class="flex gap-2" id="filter-tabs">
-                            <button onclick="setFilter('ALL')" id="tab-ALL" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white">Tất cả</button>
-                            <button onclick="setFilter('Pending')" id="tab-Pending" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white">Chờ làm</button>
-                            <button onclick="setFilter('In Progress')" id="tab-In Progress" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white">Đang làm</button>
-                            <button onclick="setFilter('Completed')" id="tab-Completed" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white">Đã hoàn thành</button>
-                        </div>
-                        <button onclick="fetchTasks()" class="text-xs text-slate-400 hover:text-white"><i class="fa-solid fa-rotate-right mr-1"></i> Làm mới</button>
-                    </div>
-
-                    <!-- Tasks List Container -->
-                    <div id="tasks-container" class="space-y-3"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const API_URL = window.location.origin;
-        let currentUser = JSON.parse(localStorage.getItem('cloud_user')) || null;
-        let isRegisterMode = false;
-        let allTasks = [];
-        let currentFilter = 'ALL';
-
-        function updateUI() {
-            if (currentUser) {
-                document.getElementById('auth-box').classList.add('hidden');
-                document.getElementById('dashboard-box').classList.remove('hidden');
-                document.getElementById('user-display').innerText = 'Xin chào, ' + currentUser.username;
-                document.getElementById('btn-auth').innerText = 'Đăng xuất';
-                document.getElementById('btn-auth').className = 'px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-xl transition-all';
-                fetchTasks();
-            } else {
-                document.getElementById('auth-box').classList.remove('hidden');
-                document.getElementById('dashboard-box').classList.add('hidden');
-                document.getElementById('user-display').innerText = '';
-                document.getElementById('btn-auth').innerText = 'Đăng nhập';
-                document.getElementById('btn-auth').className = 'px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition-all';
-            }
-        }
-
-        function toggleAuthMode() {
-            isRegisterMode = !isRegisterMode;
-            document.getElementById('auth-title').innerText = isRegisterMode ? 'Đăng Ký Tài Khoản' : 'Đăng Nhập Hệ Thống';
-            document.getElementById('auth-btn-submit').innerText = isRegisterMode ? 'Đăng Ký Mới' : 'Đăng Nhập';
-            document.getElementById('auth-toggle-btn').innerText = isRegisterMode ? 'Đã có tài khoản? Đăng nhập' : 'Chưa có tài khoản? Đăng ký ngay';
-        }
-
-        function handleAuthAction() {
-            if (currentUser) {
-                localStorage.removeItem('cloud_user');
-                currentUser = null;
-                updateUI();
-            }
-        }
-
-        async function submitAuth(e) {
-            e.preventDefault();
-            const username = document.getElementById('auth-username').value;
-            const password = document.getElementById('auth-password').value;
-            const endpoint = isRegisterMode ? '/api/register' : '/api/login';
-
-            try {
-                const res = await fetch(API_URL + endpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.error || 'Lỗi xác thực');
-
-                if (isRegisterMode) {
-                    alert('Đăng ký thành công! Hãy đăng nhập.');
-                    toggleAuthMode();
-                } else {
-                    currentUser = data.user;
-                    localStorage.setItem('cloud_user', JSON.stringify(currentUser));
-                    updateUI();
-                }
-            } catch (err) { alert(err.message); }
-        }
-
-        async function fetchTasks() {
-            if (!currentUser) return;
-            try {
-                const res = await fetch(API_URL + '/tasks?userId=' + currentUser.id);
-                allTasks = await res.json();
-                updateStats();
-                renderTasks();
-            } catch(e) {}
-        }
-
-        function updateStats() {
-            document.getElementById('stat-total').innerText = allTasks.length || 0;
-            document.getElementById('stat-pending').innerText = allTasks.filter(t => t.status === 'Pending').length || 0;
-            document.getElementById('stat-progress').innerText = allTasks.filter(t => t.status === 'In Progress').length || 0;
-            document.getElementById('stat-completed').innerText = allTasks.filter(t => t.status === 'Completed').length || 0;
-        }
-
-        function setFilter(status) {
-            currentFilter = status;
-            ['ALL', 'Pending', 'In Progress', 'Completed'].forEach(tab => {
-                const btn = document.getElementById('tab-' + tab);
-                if (tab === status) {
-                    btn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-600 text-white';
-                } else {
-                    btn.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-800 text-slate-400 hover:text-white';
-                }
-            });
-            renderTasks();
-        }
-
-        function renderTasks() {
-            const container = document.getElementById('tasks-container');
-            let filtered = allTasks;
-            if (currentFilter !== 'ALL') {
-                filtered = allTasks.filter(t => t.status === currentFilter);
-            }
-
-            if (!filtered || filtered.length === 0) {
-                container.innerHTML = '<div class="glass p-8 rounded-2xl border border-slate-800/80 text-center text-slate-400 text-xs">Không có công việc nào trong danh mục này.</div>';
-                return;
-            }
-
-            container.innerHTML = filtered.map(t => {
-                let badgeClass = 'bg-amber-500/10 text-amber-400 border-amber-500/20';
-                let statusText = 'Chờ thực hiện';
-                if (t.status === 'In Progress') { badgeClass = 'bg-blue-500/10 text-blue-400 border-blue-500/20'; statusText = 'Đang làm'; }
-                if (t.status === 'Completed') { badgeClass = 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'; statusText = 'Hoàn thành'; }
-
-                const dueDateStr = t.due_date ? new Date(t.due_date).toLocaleDateString('vi-VN') : 'Không có';
-
-                return \`
-                    <div class="glass border border-slate-800/80 p-4 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 hover:border-slate-700 transition-all">
-                        <div class="space-y-1">
-                            <div class="flex items-center gap-2">
-                                <h3 class="font-semibold text-sm \${t.status === 'Completed' ? 'line-through text-slate-400' : 'text-white'}">\${t.title}</h3>
-                                <span class="px-2 py-0.5 text-[10px] font-semibold rounded-full border \${badgeClass}">\${statusText}</span>
-                            </div>
-                            <p class="text-slate-400 text-xs">\${t.description || 'Không có mô tả'}</p>
-                            <div class="flex items-center gap-4 text-[11px] text-slate-500 pt-1">
-                                <span><i class="fa-regular fa-calendar-plus mr-1"></i>Tạo: \${new Date(t.created_at).toLocaleDateString('vi-VN')}</span>
-                                <span><i class="fa-solid fa-hourglass-half mr-1"></i>Hạn: \${dueDateStr}</span>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <select onchange="updateTaskStatus(\${t.id}, this.value)" class="bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 text-xs text-slate-300 focus:outline-none">
-                                <option value="Pending" \${t.status === 'Pending' ? 'selected' : ''}>Chờ làm</option>
-                                <option value="In Progress" \${t.status === 'In Progress' ? 'selected' : ''}>Đang làm</option>
-                                <option value="Completed" \${t.status === 'Completed' ? 'selected' : ''}>Hoàn thành</option>
-                            </select>
-                            <button onclick="deleteTask(\${t.id})" class="p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 rounded-lg text-xs transition-colors">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                \`;
-            }).join('');
-        }
-
-        async function createTask(e) {
-            e.preventDefault();
-            const title = document.getElementById('task-title').value;
-            const description = document.getElementById('task-desc').value;
-            const status = document.getElementById('task-status').value;
-            const dueDate = document.getElementById('task-duedate').value;
-
-            await fetch(API_URL + '/tasks', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title, description, status, dueDate, userId: currentUser.id })
-            });
-
-            document.getElementById('task-title').value = '';
-            document.getElementById('task-desc').value = '';
-            document.getElementById('task-duedate').value = '';
-            fetchTasks();
-        }
-
-        async function updateTaskStatus(id, newStatus) {
-            await fetch(API_URL + '/tasks/' + id, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status: newStatus })
-            });
-            fetchTasks();
-        }
-
-        async function deleteTask(id) {
-            if(confirm('Bạn có chắc muốn xóa công việc này?')) {
-                await fetch(API_URL + '/tasks/' + id, { method: 'DELETE' });
-                fetchTasks();
-            }
-        }
-
-        fetch(API_URL + '/init');
-        updateUI();
-    </script>
-</body>
-</html>`);
+  res.send(`
+    <html>
+      <head><title>Cloud Task API</title></head>
+      <body style="font-family: sans-serif; padding: 40px; background: #0f172a; color: #f8fafc;">
+        <h2>🚀 Cloud Task Manager API Backend is Live!</h2>
+        <p>Hệ thống Backend đã kết nối với PostgreSQL Neon.tech thành công.</p>
+        <ul>
+          <li><a style="color: #38bdf8;" href="/health">GET /health</a> - Kiểm tra kết nối DB</li>
+          <li><a style="color: #38bdf8;" href="/init">GET /init</a> - Khởi tạo bảng dữ liệu</li>
+          <li><a style="color: #38bdf8;" href="/tasks">GET /tasks</a> - Lấy danh sách công việc</li>
+        </ul>
+      </body>
+    </html>
+  `);
 });
 
-// 2. Khởi tạo Database Cập nhật bảng Tasks có thêm trường due_date
+// 1. API Khởi tạo bảng DB
 app.get('/init', async (req, res) => {
   try {
     await pool.query(`
@@ -368,13 +54,23 @@ app.get('/init', async (req, res) => {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
-    res.send('Database initialized successfully');
+    res.send('Database initialized with users and tasks tables');
   } catch (err) {
     res.status(500).send(err.message);
   }
 });
 
-// 3. API Đăng ký & Đăng nhập
+// 2. API Health Check
+app.get('/health', async (req, res) => {
+  try {
+    await pool.query('SELECT 1');
+    res.status(200).json({ status: 'UP', database: 'CONNECTED', timestamp: new Date() });
+  } catch (err) {
+    res.status(500).json({ status: 'DOWN', database: err.message });
+  }
+});
+
+// 3. API Đăng ký tài khoản
 app.post('/api/register', async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -383,13 +79,16 @@ app.post('/api/register', async (req, res) => {
       'INSERT INTO users (username, password) VALUES ($1, $2) RETURNING id, username',
       [username, hashedPassword]
     );
-    res.status(201).json({ message: 'Thành công', user: result.rows[0] });
+    res.status(201).json({ message: 'Tạo tài khoản thành công', user: result.rows[0] });
   } catch (err) {
-    if (err.code === '23505') return res.status(400).json({ error: 'Tên tài khoản đã tồn tại!' });
+    if (err.code === '23505') {
+      return res.status(400).json({ error: 'Tên tài khoản đã tồn tại!' });
+    }
     res.status(500).json({ error: err.message });
   }
 });
 
+// 4. API Đăng nhập
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -398,18 +97,26 @@ app.post('/api/login', async (req, res) => {
       'SELECT id, username FROM users WHERE username = $1 AND password = $2',
       [username, hashedPassword]
     );
-    if (result.rows.length === 0) return res.status(401).json({ error: 'Tài khoản hoặc mật khẩu không đúng!' });
-    res.json({ message: 'Thành công', user: result.rows[0] });
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'Tài khoản hoặc mật khẩu không đúng!' });
+    }
+    res.json({ message: 'Đăng nhập thành công', user: result.rows[0] });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// 4. API Thao tác công việc (Tasks CRUD)
+// 5. API CRUD Tasks
 app.get('/tasks', async (req, res) => {
   const { userId } = req.query;
   try {
-    const result = await pool.query('SELECT * FROM tasks WHERE user_id = $1 ORDER BY id DESC', [userId]);
+    let query = 'SELECT * FROM tasks ORDER BY id DESC';
+    let params = [];
+    if (userId) {
+      query = 'SELECT * FROM tasks WHERE user_id = $1 ORDER BY id DESC';
+      params = [userId];
+    }
+    const result = await pool.query(query, params);
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -421,7 +128,7 @@ app.post('/tasks', async (req, res) => {
   try {
     const result = await pool.query(
       'INSERT INTO tasks (title, description, status, due_date, user_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [title, description, status || 'Pending', dueDate || null, userId]
+      [title, description, status || 'Pending', dueDate || null, userId || null]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -433,7 +140,10 @@ app.put('/tasks/:id', async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
   try {
-    const result = await pool.query('UPDATE tasks SET status = $1 WHERE id = $2 RETURNING *', [status, id]);
+    const result = await pool.query(
+      'UPDATE tasks SET status = $1 WHERE id = $2 RETURNING *',
+      [status, id]
+    );
     res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -447,15 +157,6 @@ app.delete('/tasks/:id', async (req, res) => {
     res.json({ message: 'Task deleted successfully' });
   } catch (err) {
     res.status(500).json({ error: err.message });
-  }
-});
-
-app.get('/health', async (req, res) => {
-  try {
-    await pool.query('SELECT 1');
-    res.status(200).json({ status: 'UP', database: 'CONNECTED', timestamp: new Date() });
-  } catch (err) {
-    res.status(500).json({ status: 'DOWN', database: err.message });
   }
 });
 
