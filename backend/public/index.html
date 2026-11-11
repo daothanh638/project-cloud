@@ -14,7 +14,7 @@
         .border-theme { border-color: #1e2d42; }
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: #0b131e; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #1e2d42; rounded: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #1e2d42; border-radius: 4px; }
     </style>
 </head>
 <body class="flex h-screen overflow-hidden text-sm">
@@ -22,7 +22,6 @@
     <!-- 1. SIDEBAR BÊN TRÁI -->
     <aside class="w-60 bg-sidebar border-r border-theme flex flex-col justify-between p-4 shrink-0">
         <div class="space-y-6">
-            <!-- App Logo -->
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2.5">
                     <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
@@ -30,40 +29,22 @@
                     </div>
                     <span class="font-bold text-white text-base">Quản lý Task <span class="text-[10px] text-slate-500 font-normal">v2.1</span></span>
                 </div>
-                <button class="text-slate-500 hover:text-white"><i class="fa-solid fa-angles-left"></i></button>
             </div>
 
-            <!-- Menu items -->
             <nav class="space-y-1">
-                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800/50 hover:text-white font-medium text-xs">
-                    <i class="fa-solid fa-chart-pie w-4"></i> Thống kê
-                </a>
                 <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-teal-600/20 text-teal-400 font-semibold text-xs border-l-4 border-teal-500">
-                    <i class="fa-solid fa-table-columns w-4"></i> Kanban
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800/50 hover:text-white font-medium text-xs">
-                    <i class="fa-solid fa-list-ul w-4"></i> Danh sách
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800/50 hover:text-white font-medium text-xs">
-                    <i class="fa-regular fa-calendar-days w-4"></i> Lịch trình
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800/50 hover:text-white font-medium text-xs">
-                    <i class="fa-solid fa-clock-rotate-left w-4"></i> Lịch sử
-                </a>
-                <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:bg-slate-800/50 hover:text-white font-medium text-xs">
-                    <i class="fa-solid fa-users w-4"></i> Người dùng
+                    <i class="fa-solid fa-table-columns w-4"></i> Bảng Kanban
                 </a>
             </nav>
         </div>
 
-        <!-- Logout button & User info -->
         <div class="pt-4 border-t border-theme space-y-3">
-            <div id="user-info-box" class="hidden px-2">
+            <div id="user-info-box" class="px-2">
                 <p class="text-[11px] text-slate-500">Tài khoản hiện tại</p>
-                <p id="username-display" class="font-bold text-white text-xs truncate"></p>
+                <p id="username-display" class="font-bold text-teal-400 text-xs truncate">Chưa đăng nhập</p>
             </div>
-            <button id="auth-btn" onclick="handleAuthAction()" class="flex items-center gap-2 text-xs text-slate-400 hover:text-rose-400 transition-colors w-full px-2">
-                <i class="fa-solid fa-right-from-bracket"></i> <span id="auth-btn-text">Đăng nhập</span>
+            <button id="auth-btn" onclick="handleAuthAction()" class="flex items-center gap-2 text-xs text-slate-300 hover:text-white transition-colors w-full px-2 py-1.5 bg-slate-800 rounded-lg">
+                <i class="fa-solid fa-right-from-bracket"></i> <span id="auth-btn-text">Đăng nhập / Đăng ký</span>
             </button>
         </div>
     </aside>
@@ -73,47 +54,30 @@
         
         <!-- Header Top Bar -->
         <header class="h-16 border-b border-theme px-6 flex items-center justify-between shrink-0">
-            <!-- Search bar -->
             <div class="relative w-80">
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs"></i>
                 <input type="text" id="search-input" onkeyup="renderBoard()" placeholder="Tìm kiếm công việc..." 
                     class="w-full bg-[#111c2a] border border-theme rounded-lg pl-9 pr-4 py-1.5 text-xs text-white focus:outline-none focus:border-teal-500">
             </div>
 
-            <!-- Action buttons -->
             <div class="flex items-center gap-3">
-                <button onclick="initDB()" title="Khởi tạo lại bảng DB" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center text-xs">
-                    <i class="fa-solid fa-database"></i>
+                <button onclick="initDB()" title="Khởi tạo lại bảng DB" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs flex items-center gap-1.5">
+                    <i class="fa-solid fa-database text-teal-400"></i> Init DB
                 </button>
-                <button onclick="openModal()" class="px-3.5 py-1.5 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs rounded-lg flex items-center gap-1.5 transition-all shadow-lg shadow-teal-500/20">
-                    <i class="fa-solid fa-plus"></i> Tạo Mới
+                <button onclick="openModal()" class="px-4 py-2 bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs rounded-lg flex items-center gap-1.5 transition-all shadow-lg shadow-teal-500/20">
+                    <i class="fa-solid fa-plus"></i> + Tạo Mới
                 </button>
-                <div class="w-8 h-8 rounded-full bg-teal-600 text-white font-bold flex items-center justify-center text-xs shadow-md">
-                    AD
-                </div>
             </div>
         </header>
 
         <!-- Sub Header Filter Bar -->
         <div class="px-6 py-3 border-b border-theme flex items-center gap-3 text-xs shrink-0 flex-wrap">
-            <span class="text-slate-400 font-medium flex items-center gap-1.5"><i class="fa-solid fa-filter text-slate-500"></i> Bộ lọc:</span>
-            
-            <select id="filter-user" onchange="renderBoard()" class="bg-[#111c2a] border border-theme rounded-lg px-3 py-1.5 text-slate-300 focus:outline-none">
-                <option value="ALL">Tất cả phụ trách</option>
-            </select>
-            <select id="filter-tag" onchange="renderBoard()" class="bg-[#111c2a] border border-theme rounded-lg px-3 py-1.5 text-slate-300 focus:outline-none">
-                <option value="ALL">Tất cả nhãn</option>
-                <option value="Tính năng">Tính năng</option>
-                <option value="Design">Design</option>
-            </select>
+            <span class="text-slate-400 font-medium flex items-center gap-1.5"><i class="fa-solid fa-filter text-slate-500"></i> Lọc mức độ:</span>
             <select id="filter-priority" onchange="renderBoard()" class="bg-[#111c2a] border border-theme rounded-lg px-3 py-1.5 text-slate-300 focus:outline-none">
                 <option value="ALL">Tất cả mức độ</option>
                 <option value="Khẩn cấp">Khẩn cấp</option>
                 <option value="Trung bình">Trung bình</option>
                 <option value="Thấp">Thấp</option>
-            </select>
-            <select class="bg-[#111c2a] border border-theme rounded-lg px-3 py-1.5 text-slate-300 focus:outline-none">
-                <option>Tháng này</option>
             </select>
         </div>
 
@@ -124,9 +88,9 @@
                 <!-- Cột 1: Cần làm -->
                 <div class="w-72 flex flex-col h-full bg-[#0e1724]/60 rounded-xl border border-theme/60 p-3">
                     <div class="flex items-center justify-between mb-3 px-1">
-                        <span class="font-bold text-white text-xs flex items-center gap-2">Cần làm</span>
+                        <span class="font-bold text-white text-xs">Cần làm</span>
                         <div class="flex items-center gap-2">
-                            <button onclick="openModal('Pending')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-plus text-xs"></i></button>
+                            <button onclick="openModal('Pending')" class="text-slate-400 hover:text-teal-400"><i class="fa-solid fa-plus text-xs"></i></button>
                             <span id="count-pending" class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[11px] font-bold">0</span>
                         </div>
                     </div>
@@ -136,9 +100,9 @@
                 <!-- Cột 2: Đang làm -->
                 <div class="w-72 flex flex-col h-full bg-[#0e1724]/60 rounded-xl border border-theme/60 p-3">
                     <div class="flex items-center justify-between mb-3 px-1">
-                        <span class="font-bold text-white text-xs flex items-center gap-2">Đang làm</span>
+                        <span class="font-bold text-white text-xs">Đang làm</span>
                         <div class="flex items-center gap-2">
-                            <button onclick="openModal('In Progress')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-plus text-xs"></i></button>
+                            <button onclick="openModal('In Progress')" class="text-slate-400 hover:text-teal-400"><i class="fa-solid fa-plus text-xs"></i></button>
                             <span id="count-progress" class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[11px] font-bold">0</span>
                         </div>
                     </div>
@@ -148,9 +112,9 @@
                 <!-- Cột 3: Chờ duyệt -->
                 <div class="w-72 flex flex-col h-full bg-[#0e1724]/60 rounded-xl border border-theme/60 p-3">
                     <div class="flex items-center justify-between mb-3 px-1">
-                        <span class="font-bold text-white text-xs flex items-center gap-2">Chờ duyệt</span>
+                        <span class="font-bold text-white text-xs">Chờ duyệt</span>
                         <div class="flex items-center gap-2">
-                            <button onclick="openModal('Review')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-plus text-xs"></i></button>
+                            <button onclick="openModal('Review')" class="text-slate-400 hover:text-teal-400"><i class="fa-solid fa-plus text-xs"></i></button>
                             <span id="count-review" class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[11px] font-bold">0</span>
                         </div>
                     </div>
@@ -160,9 +124,9 @@
                 <!-- Cột 4: Hoàn thành -->
                 <div class="w-72 flex flex-col h-full bg-[#0e1724]/60 rounded-xl border border-theme/60 p-3">
                     <div class="flex items-center justify-between mb-3 px-1">
-                        <span class="font-bold text-white text-xs flex items-center gap-2">Hoàn thành</span>
+                        <span class="font-bold text-white text-xs">Hoàn thành</span>
                         <div class="flex items-center gap-2">
-                            <button onclick="openModal('Completed')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-plus text-xs"></i></button>
+                            <button onclick="openModal('Completed')" class="text-slate-400 hover:text-teal-400"><i class="fa-solid fa-plus text-xs"></i></button>
                             <span id="count-completed" class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 text-[11px] font-bold">0</span>
                         </div>
                     </div>
@@ -174,28 +138,28 @@
     </main>
 
     <!-- MODAL ĐĂNG NHẬP / ĐĂNG KÝ -->
-    <div id="auth-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div id="auth-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50">
         <div class="bg-[#111c2a] border border-theme w-full max-w-sm rounded-2xl p-6 shadow-2xl">
-            <h3 id="auth-title" class="text-lg font-bold text-white mb-4 text-center">Đăng Nhập</h3>
+            <h3 id="auth-title" class="text-lg font-bold text-white mb-4 text-center">Đăng Nhập Hệ Thống</h3>
             <form onsubmit="submitAuth(event)" class="space-y-4">
                 <div>
-                    <label class="block text-xs text-slate-400 mb-1">Tài khoản</label>
-                    <input type="text" id="auth-username" required class="w-full bg-[#0b131e] border border-theme rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-teal-500">
+                    <label class="block text-xs text-slate-400 mb-1">Tên tài khoản</label>
+                    <input type="text" id="auth-username" required placeholder="Nhập username..." class="w-full bg-[#0b131e] border border-theme rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-teal-500">
                 </div>
                 <div>
                     <label class="block text-xs text-slate-400 mb-1">Mật khẩu</label>
-                    <input type="password" id="auth-password" required class="w-full bg-[#0b131e] border border-theme rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-teal-500">
+                    <input type="password" id="auth-password" required placeholder="Nhập mật khẩu..." class="w-full bg-[#0b131e] border border-theme rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-teal-500">
                 </div>
                 <button type="submit" id="auth-btn-submit" class="w-full bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold py-2.5 rounded-lg text-xs transition-all">Đăng Nhập</button>
             </form>
             <div class="mt-4 text-center">
-                <button onclick="toggleAuthMode()" id="auth-toggle-btn" class="text-xs text-teal-400 hover:underline">Chưa có tài khoản? Đăng ký</button>
+                <button onclick="toggleAuthMode()" id="auth-toggle-btn" class="text-xs text-teal-400 hover:underline">Chưa có tài khoản? Đăng ký ngay</button>
             </div>
         </div>
     </div>
 
     <!-- MODAL TẠO TASK MỚI -->
-    <div id="task-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+    <div id="task-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-[#111c2a] border border-theme w-full max-w-md rounded-2xl p-6 shadow-2xl">
             <div class="flex justify-between items-center mb-4">
                 <h3 class="text-base font-bold text-white">Thêm Công Việc Mới</h3>
@@ -204,11 +168,11 @@
             <form onsubmit="createTask(event)" class="space-y-4">
                 <div>
                     <label class="block text-xs text-slate-400 mb-1">Tên công việc (*)</label>
-                    <input type="text" id="task-title" required placeholder="Ví dụ: Công việc 22: Tối ưu Docker" class="w-full bg-[#0b131e] border border-theme rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-teal-500">
+                    <input type="text" id="task-title" required placeholder="Ví dụ: Thiết kế Docker Container" class="w-full bg-[#0b131e] border border-theme rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-teal-500">
                 </div>
                 <div>
                     <label class="block text-xs text-slate-400 mb-1">Mô tả chi tiết</label>
-                    <textarea id="task-desc" rows="3" placeholder="Nhập ghi chú..." class="w-full bg-[#0b131e] border border-theme rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-teal-500"></textarea>
+                    <textarea id="task-desc" rows="3" placeholder="Ghi chú thêm..." class="w-full bg-[#0b131e] border border-theme rounded-lg p-2.5 text-xs text-white focus:outline-none focus:border-teal-500"></textarea>
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
@@ -241,7 +205,7 @@
         </div>
     </div>
 
-    <!-- JAVASCRIPT LOGIC -->
+    <!-- JAVASCRIPT THAO TÁC API -->
     <script>
         const API_URL = window.location.origin;
         let currentUser = JSON.parse(localStorage.getItem('cloud_user')) || null;
@@ -251,13 +215,12 @@
         function updateAuthUI() {
             if (currentUser) {
                 document.getElementById('username-display').innerText = currentUser.username;
-                document.getElementById('user-info-box').classList.remove('hidden');
                 document.getElementById('auth-btn-text').innerText = 'Đăng xuất';
                 document.getElementById('auth-modal').classList.add('hidden');
                 fetchTasks();
             } else {
-                document.getElementById('user-info-box').classList.add('hidden');
-                document.getElementById('auth-btn-text').innerText = 'Đăng nhập';
+                document.getElementById('username-display').innerText = 'Chưa đăng nhập';
+                document.getElementById('auth-btn-text').innerText = 'Đăng nhập / Đăng ký';
                 document.getElementById('auth-modal').classList.remove('hidden');
             }
         }
@@ -274,9 +237,9 @@
 
         function toggleAuthMode() {
             isRegisterMode = !isRegisterMode;
-            document.getElementById('auth-title').innerText = isRegisterMode ? 'Đăng Ký' : 'Đăng Nhập';
+            document.getElementById('auth-title').innerText = isRegisterMode ? 'Đăng Ký Tài Khoản' : 'Đăng Nhập Hệ Thống';
             document.getElementById('auth-btn-submit').innerText = isRegisterMode ? 'Đăng Ký Mới' : 'Đăng Nhập';
-            document.getElementById('auth-toggle-btn').innerText = isRegisterMode ? 'Đã có tài khoản? Đăng nhập' : 'Chưa có tài khoản? Đăng ký';
+            document.getElementById('auth-toggle-btn').innerText = isRegisterMode ? 'Đã có tài khoản? Đăng nhập' : 'Chưa có tài khoản? Đăng ký ngay';
         }
 
         async function submitAuth(e) {
@@ -295,7 +258,7 @@
                 if (!res.ok) throw new Error(data.error || 'Lỗi xác thực');
 
                 if (isRegisterMode) {
-                    alert('Đăng ký thành công!');
+                    alert('Đăng ký thành công! Đang chuyển sang đăng nhập.');
                     toggleAuthMode();
                 } else {
                     currentUser = data.user;
@@ -316,7 +279,6 @@
 
         function renderBoard() {
             const searchVal = document.getElementById('search-input').value.toLowerCase();
-            const tagVal = document.getElementById('filter-tag').value;
             const prioVal = document.getElementById('filter-priority').value;
 
             let filtered = allTasks.filter(t => {
@@ -344,42 +306,34 @@
         }
 
         function createCardHTML(t) {
-            const dueDateStr = t.due_date ? new Date(t.due_date).toLocaleDateString('vi-VN') : '27/1/2026';
+            const dueDateStr = t.due_date ? new Date(t.due_date).toLocaleDateString('vi-VN') : 'Không hạn';
             const taskIdStr = 'TASK-' + (1000 + t.id);
 
             return `
                 <div class="bg-card bg-card-hover border border-theme rounded-xl p-3.5 space-y-2.5 shadow-md relative group">
                     <div class="flex items-center justify-between">
                         <span class="text-[10px] font-bold text-slate-500">${taskIdStr}</span>
-                        <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button onclick="deleteTask(${t.id})" class="text-rose-400 hover:text-rose-300 text-xs px-1"><i class="fa-solid fa-trash"></i></button>
-                        </div>
+                        <button onclick="deleteTask(${t.id})" title="Xóa task" class="text-rose-400 hover:text-rose-300 text-xs px-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
                     </div>
                     <h4 class="font-semibold text-white text-xs leading-snug">${t.title}</h4>
-                    
-                    <div class="flex items-center gap-2">
-                        <span class="px-2 py-0.5 text-[9px] rounded bg-teal-500/10 text-teal-400 font-medium border border-teal-500/20">Tính năng</span>
-                    </div>
+                    <p class="text-slate-400 text-[11px] line-clamp-2">${t.description || 'Không có mô tả'}</p>
 
                     <div class="flex items-center justify-between pt-1 border-t border-theme/40 text-[10px]">
-                        <span class="text-amber-400 font-medium">Trung bình</span>
-                        <div class="flex items-center gap-1.5">
-                            <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-semibold border border-theme">
-                                <i class="fa-regular fa-clock mr-1 text-[9px]"></i>${dueDateStr}
-                            </span>
-                            <div class="w-5 h-5 rounded-full bg-amber-600 text-white font-bold flex items-center justify-center text-[9px]">
-                                AD
-                            </div>
+                        <span class="text-teal-400 font-medium"><i class="fa-regular fa-clock mr-1"></i>${dueDateStr}</span>
+                        <div class="w-5 h-5 rounded-full bg-teal-600 text-white font-bold flex items-center justify-center text-[9px]">
+                            ${currentUser ? currentUser.username.substring(0, 2).toUpperCase() : 'US'}
                         </div>
                     </div>
 
-                    <!-- Fast Change Status -->
+                    <!-- Dropdown đổi trạng thái trực tiếp -->
                     <div class="pt-1">
-                        <select onchange="updateTaskStatus(${t.id}, this.value)" class="w-full bg-[#0b131e] border border-theme text-[10px] rounded px-1.5 py-1 text-slate-400 focus:outline-none">
-                            <option value="Pending" ${t.status === 'Pending' ? 'selected' : ''}>Chuyển: Cần làm</option>
-                            <option value="In Progress" ${t.status === 'In Progress' ? 'selected' : ''}>Chuyển: Đang làm</option>
-                            <option value="Review" ${t.status === 'Review' ? 'selected' : ''}>Chuyển: Chờ duyệt</option>
-                            <option value="Completed" ${t.status === 'Completed' ? 'selected' : ''}>Chuyển: Hoàn thành</option>
+                        <select onchange="updateTaskStatus(${t.id}, this.value)" class="w-full bg-[#0b131e] border border-theme text-[10px] rounded px-1.5 py-1 text-slate-300 focus:outline-none">
+                            <option value="Pending" ${t.status === 'Pending' ? 'selected' : ''}>📍 Chuyển: Cần làm</option>
+                            <option value="In Progress" ${t.status === 'In Progress' ? 'selected' : ''}>⏳ Chuyển: Đang làm</option>
+                            <option value="Review" ${t.status === 'Review' ? 'selected' : ''}>🔍 Chuyển: Chờ duyệt</option>
+                            <option value="Completed" ${t.status === 'Completed' ? 'selected' : ''}>✅ Chuyển: Hoàn thành</option>
                         </select>
                     </div>
                 </div>
@@ -388,6 +342,8 @@
 
         async function createTask(e) {
             e.preventDefault();
+            if (!currentUser) return alert('Vui lòng đăng nhập trước!');
+            
             const title = document.getElementById('task-title').value;
             const description = document.getElementById('task-desc').value;
             const status = document.getElementById('task-status').value;
@@ -399,6 +355,8 @@
                 body: JSON.stringify({ title, description, status, dueDate, userId: currentUser.id })
             });
 
+            document.getElementById('task-title').value = '';
+            document.getElementById('task-desc').value = '';
             closeModal();
             fetchTasks();
         }
@@ -413,17 +371,21 @@
         }
 
         async function deleteTask(id) {
-            if(confirm('Xóa công việc này?')) {
+            if(confirm('Bạn có chắc muốn xóa công việc này khỏi Database?')) {
                 await fetch(API_URL + '/tasks/' + id, { method: 'DELETE' });
                 fetchTasks();
             }
         }
 
         function openModal(defaultStatus = 'Pending') {
+            if (!currentUser) return alert('Bạn cần Đăng nhập trước khi tạo công việc!');
             document.getElementById('task-status').value = defaultStatus;
             document.getElementById('task-modal').classList.remove('hidden');
         }
-        function closeModal() { document.getElementById('task-modal').classList.add('hidden'); }
+
+        function closeModal() {
+            document.getElementById('task-modal').classList.add('hidden');
+        }
 
         async function initDB() {
             const res = await fetch(API_URL + '/init');
