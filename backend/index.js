@@ -7,10 +7,8 @@ require('dotenv').config();
 const app = express();
 app.use(express.json());
 
-// Phục vụ tĩnh thư mục public (đã chứa file index.html)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Kết nối PostgreSQL (Bắt buộc rejectUnauthorized: false cho Neon DB)
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false }
@@ -20,7 +18,7 @@ function hashPassword(password) {
   return crypto.createHash('sha256').update(password).digest('hex');
 }
 
-// 1. API Khởi tạo bảng DB
+// 1. API Khởi tạo & Tự động nâng cấp Cấu trúc Database (Thêm cột due_date nếu chưa có)
 app.get('/init', async (req, res) => {
   try {
     await pool.query(`
@@ -30,6 +28,7 @@ app.get('/init', async (req, res) => {
         password VARCHAR(255) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
       CREATE TABLE IF NOT EXISTS tasks (
         id SERIAL PRIMARY KEY,
         user_id INT REFERENCES users(id) ON DELETE CASCADE,
@@ -39,14 +38,17 @@ app.get('/init', async (req, res) => {
         due_date DATE,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
+
+      ALTER TABLE tasks ADD COLUMN IF NOT EXISTS due_date DATE;
+      ALTER TABLE tasks ADD COLUMN IF NOT EXISTS user_id INT;
     `);
-    res.send('Database initialized with users and tasks tables');
+    res.send('Database initialized & upgraded successfully!');
   } catch (err) {
     res.status(500).send(err.message);
   }
 });
 
-// 2. API Health Check
+// 2. Health check
 app.get('/health', async (req, res) => {
   try {
     await pool.query('SELECT 1');
@@ -56,7 +58,7 @@ app.get('/health', async (req, res) => {
   }
 });
 
-// 3. API Đăng ký tài khoản
+// 3. Auth APIs
 app.post('/api/register', async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -67,14 +69,11 @@ app.post('/api/register', async (req, res) => {
     );
     res.status(201).json({ message: 'Tạo tài khoản thành công', user: result.rows[0] });
   } catch (err) {
-    if (err.code === '23505') {
-      return res.status(400).json({ error: 'Tên tài khoản đã tồn tại!' });
-    }
+    if (err.code === '23505') return res.status(400).json({ error: 'Tên tài khoản đã tồn tại!' });
     res.status(500).json({ error: err.message });
   }
 });
 
-// 4. API Đăng nhập
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
   try {
@@ -83,16 +82,14 @@ app.post('/api/login', async (req, res) => {
       'SELECT id, username FROM users WHERE username = $1 AND password = $2',
       [username, hashedPassword]
     );
-    if (result.rows.length === 0) {
-      return res.status(401).json({ error: 'Tài khoản hoặc mật khẩu không đúng!' });
-    }
+    if (result.rows.length === 0) return res.status(401).json({ error: 'Tài khoản hoặc mật khẩu không đúng!' });
     res.json({ message: 'Đăng nhập thành công', user: result.rows[0] });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// 5. API CRUD Tasks
+// 4. Tasks APIs
 app.get('/tasks', async (req, res) => {
   const { userId } = req.query;
   try {
@@ -112,9 +109,10 @@ app.get('/tasks', async (req, res) => {
 app.post('/tasks', async (req, res) => {
   const { title, description, status, dueDate, userId } = req.body;
   try {
+    const validDueDate = dueDate ? dueDate : null;
     const result = await pool.query(
       'INSERT INTO tasks (title, description, status, due_date, user_id) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [title, description, status || 'Pending', dueDate || null, userId || null]
+      [title, description || '', status || 'Pending', validDueDate, userId || null]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
